@@ -212,11 +212,10 @@
 
         .status-loading { background-color: #e6eee8; color: #234433; }
         .status-success { background-color: #d1e7dd; color: #0f5132; }
+        .status-error { background-color: #f8d7da; color: #842029; }
     </style>
 </head>
 <body>
-
-<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(typeof iframe_loaded !== 'undefined') iframe_loaded();"></iframe>
 
 <div class="console-container">
     <div class="greeting-box">
@@ -228,7 +227,7 @@
         <p>Organise Your Expenses</p>
     </div>
 
-    <form id="ledgerForm" method="POST" target="hidden_iframe" action="https://script.google.com/macros/s/AKfycbynrh6S7wRfYQxWx-EgoOPWvIGu9izheey_Xml3gUeHBwmBZIPNQDOyoM7xKKijeN5U/exec">
+    <form id="ledgerForm" method="POST" action="https://script.google.com/macros/s/AKfycbyZsU8SJ_c_Jrezmc4sahaSqZrRPboZk7hOu12Fyoj28MS6X_QgYs2GBfB51Mshb8zj/exec">
         
         <div class="form-group">
             <label for="date">Calendar Date</label>
@@ -361,35 +360,52 @@
 
     document.getElementById('date').valueAsDate = new Date();
 
-    var submitted = false;
-    
-    // UI feedback handling when the form hits the submit thread
-    document.getElementById('ledgerForm').addEventListener('submit', function() {
+    // BRAND NEW ASYNCHRONOUS HANDLING FOR BOTH DESKTOP & MOBILE
+    document.getElementById('ledgerForm').addEventListener('submit', function(e) {
+        e.preventDefault(); // Stop form from triggering a native reload/iframe redirect
+
+        const form = e.target;
         const submitBtn = document.getElementById('submitBtn');
         const statusBox = document.getElementById('statusBox');
 
+        // Set UI Loading state
         submitBtn.disabled = true;
         statusBox.style.display = 'block';
         statusBox.className = 'status-loading';
         statusBox.textContent = 'Filing that away securely into your sheet... 🌿';
-        submitted = true;
-    });
 
-    // Intercept when the background frame registers a completed ingestion loop from Google
-    function iframe_loaded() {
-        if (submitted) {
-            const statusBox = document.getElementById('statusBox');
+        // Extract form data elements cleanly
+        const formData = new FormData(form);
+
+        // Send network request configured to bypass mobile iOS security restrictions
+        fetch(form.action, {
+            method: 'POST',
+            mode: 'no-cors', // Bypasses CORS blocks on iPhone Safari
+            body: formData
+        })
+        .then(() => {
+            // Success Routine
             statusBox.className = 'status-success';
             statusBox.textContent = 'Saved ✨';
             
-            // Clear inputs for the next entry loop cleanly
+            // Clear inputs for the next log entry loop
             document.getElementById('description').value = '';
             document.getElementById('amount').value = '';
+            document.getElementById('category').selectedIndex = 0;
+            document.getElementById('sourcingChannel').selectedIndex = 0;
+            document.getElementById('paymentMode').selectedIndex = 0;
             document.getElementById('date').valueAsDate = new Date();
-            document.getElementById('submitBtn').disabled = false;
-            submitted = false;
-        }
-    }
+            
+            submitBtn.disabled = false;
+        })
+        .catch(error => {
+            // Error Handling Routine
+            statusBox.className = 'status-error';
+            statusBox.textContent = 'Submission error. Please try again.';
+            submitBtn.disabled = false;
+            console.error('Error logging expense:', error);
+        });
+    });
 </script>
 
 </body>
