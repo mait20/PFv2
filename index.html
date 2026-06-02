@@ -1,40 +1,85 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pocketful — Expense Console</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,500;0,600;1,400&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            /* Soft Pastel Botanical Color Palette */
-            --bg-base: #e6efe9; /* Richer pastel mint clay for better illustration background contrast */
-            --panel-bg: rgba(254, 254, 252, 0.98); /* Solid clean warm white paper */
-            --text-main: #142219;
-            --text-muted: #55665c;
-            --accent: #ca7253; /* Soft warm terracotta clay */
-            --accent-hover: #b56244;
-            --mint-glow: #d8ebddec;
-            --input-bg: #f4f8f5;
-            --input-border: #bcd2c4;
-            --font-display: 'Playfair Display', Georgia, serif;
-            --font-sans: 'DM Sans', -apple-system, sans-serif;
-            --shadow: 0 30px 60px rgba(25, 43, 33, 0.15);
-        }
+// =========================================================================
+    // 1. CONFIGURATION: PASTE YOUR GOOGLE WEB APP URL HERE
+    // =========================================================================
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqVcZ4w0qIpy9v4n8gSUgjZSgFPWQnr-gAOlMZSOb06_f4NLvRmZjblgeUKH3n3mGw/exec';
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+    // =========================================================================
+    // 2. DYNAMIC LAYOUT GREETINGS ENGINE
+    // =========================================================================
+    const prompts = [
+        "Fresh day, fresh canvas. Take a deep breath. ☕",
+        "Time to design a beautiful, well-balanced day! 🌿",
+        "Manifesting clarity, calm, and beautiful alignment today. ✨",
+        "Cultivating intentional routines and happy roots. 🪴",
+        "Your space, your layout, your complete peace of mind. 🤍",
+        "A little regular structural care builds magnificent things. 🍃"
+    ];
+    document.getElementById('dynamicGreeting').textContent = prompts[Math.floor(Math.random() * prompts.length)];
 
-        body {
-            font-family: var(--font-sans);
-            background-color: var(--bg-base);
-            color: var(--text-main);
+    // Automatically set the calendar visual display to today's date
+    document.getElementById('date').valueAsDate = new Date();
+
+    // =========================================================================
+    // 3. IOS-COMPATIBLE SECURE SUBMISSION LOGIC
+    // =========================================================================
+    document.getElementById('ledgerForm').addEventListener('submit', function(e) {
+        e.preventDefault(); // Stop native browser navigation and redirect anchors
+
+        const submitBtn = document.getElementById('submitBtn');
+        const statusBox = document.getElementById('statusBox');
+
+        // Trigger loading interface sequence
+        submitBtn.disabled = true;
+        statusBox.style.display = 'block';
+        statusBox.className = 'status-loading';
+        statusBox.textContent = 'Filing that away securely into your sheet... 🌿';
+
+        // Translate the input elements into standard raw string URL parameters.
+        // This simulates a basic native text payload, bypassing strict iOS security filters.
+        const urlParams = new URLSearchParams();
+        urlParams.append('date', document.getElementById('date').value);
+        urlParams.append('category', document.getElementById('category').value);
+        urlParams.append('sourcingChannel', document.getElementById('sourcingChannel').value);
+        urlParams.append('description', document.getElementById('description').value);
+        urlParams.append('amount', document.getElementById('amount').value);
+        urlParams.append('paymentMode', document.getElementById('paymentMode').value);
+
+        // Dispatches structural network pipeline directly to the Apps Script endpoint hooks
+        fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', // Critical: Forces iOS Safari to let the packet through without blocking
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: urlParams.toString()
+        })
+        .then(() => {
+            // UI Success Feedback Sequence
+            statusBox.className = 'status-success';
+            statusBox.textContent = 'Saved ✨';
+            
+            // Clear standard text fields cleanly for the next rapid entry loop
+            document.getElementById('description').value = '';
+            document.getElementById('amount').value = '';
+            
+            // Reset drops selections back to default placeholder index options
+            document.getElementById('category').selectedIndex = 0;
+            document.getElementById('sourcingChannel').selectedIndex = 0;
+            document.getElementById('paymentMode').selectedIndex = 0;
+            
+            // Re-anchor date picker layout interface back to current day profile
+            document.getElementById('date').valueAsDate = new Date();
+            
+            submitBtn.disabled = false;
+        })
+        .catch(error => {
+            // Device Fallback Exception Error Logging Thread
+            statusBox.className = 'status-error';
+            statusBox.textContent = 'Submission error. Please verify network link.';
+            submitBtn.disabled = false;
+            console.error('Error executing network log:', error);
+        });
+    });            color: var(--text-main);
             min-height: 100vh;
             display: flex;
             justify-content: center;
